@@ -26,7 +26,7 @@ def index_to_action(action):
     
 class Environment(object):
 
-    def __init__(self, env_id, roms_path, frame_ratio=6, render=True):
+    def __init__(self, env_id, roms_path, frame_ratio=12, render=True):
         self.frame_ratio = frame_ratio
         self.emu = Emulator(env_id, roms_path, "digdug", setup_memory_addresses(), frame_ratio=frame_ratio, render=render)
         self.Dims = self.emu.screenDims
