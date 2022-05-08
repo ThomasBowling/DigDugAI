@@ -1,5 +1,3 @@
-import random
-import matplotlib.pyplot as plt
 import numpy as np
 import cv2
 import tensorflow as tf
@@ -16,10 +14,9 @@ buff_state = []
 buff_action = []
 buff_reward = []
 BATCH_SIZE = 32
-BUFF_MAX = 3700
-TENSORBOARD_DIR = 'logs/test_1/'
-RL_loss = tf.keras.losses.Huber(reduction=tf.keras.losses.Reduction.NONE)
+BUFF_MAX = 5500
 TENSORBOARD_DIR = 'logs/tensorboard/'
+RL_loss = tf.keras.losses.Huber(reduction=tf.keras.losses.Reduction.NONE)
 
 opt = tf.optimizers.Adam(alpha)
 
@@ -127,7 +124,7 @@ def random_game():
     out.release()
     
 
-roms_path = "roms/"  # Replace this with the path to your ROMs
+roms_path = "roms/"
 env = Environment("env1", roms_path)
 env.start()
 agent = ann_model()
@@ -188,7 +185,6 @@ while game < 100000:
     game_reward += reward
     
     if game_done:
-        #reward ,eps, round
         inital_step = True;
         print("game: " + str(game))
         print("reward: " + str(game_reward))
@@ -206,5 +202,5 @@ while game < 100000:
             env.new_game()
         game += 1;
 
-#every 100 games do 1 test
+#every 200 games do 1 test
 env.close();
