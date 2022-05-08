@@ -49,7 +49,7 @@ class Environment(object):
     
     def check_done(self, data, reward):
         if data["gameActive"] == 0:
-            reward = reward-(50/20)
+            reward = reward-1
             converted_score = self.convert_score(data["score"])
             print("score: " + str(converted_score))
             self.game_done = True
@@ -74,8 +74,7 @@ class Environment(object):
     
     
     def get_reward(self, score, round_val, lives):
-        reward = ((score-self.inital_score)/10) + ((round_val-self.inital_round)*50) - ((self.inital_lives-lives)*50)
-        reward = reward / 20
+        reward = ((score-self.inital_score)/10) + ((round_val-self.inital_round)) - ((self.inital_lives-lives))
         self.inital_score = score
         self.inital_round = round_val
         self.inital_lives = lives
