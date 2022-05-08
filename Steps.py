@@ -1,4 +1,4 @@
-from Downloads.DigDugProject.Actions import Actions
+from Actions import Actions
 
 def start_game(frame_ratio):
     return [

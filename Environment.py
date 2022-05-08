@@ -1,7 +1,7 @@
 from MAMEToolkit.emulator import Emulator
 from MAMEToolkit.emulator import Address
-from Downloads.DigDugProject.Actions import Actions
-from Downloads.DigDugProject.Steps import start_game
+from Actions import Actions
+from Steps import start_game
 import re
 
 def setup_memory_addresses():
@@ -26,12 +26,15 @@ def index_to_action(action):
     
 class Environment(object):
 
-    def __init__(self, env_id, roms_path, frame_ratio=12, render=True):
+    def __init__(self, env_id, roms_path, frame_ratio=6, render=True):
         self.frame_ratio = frame_ratio
         self.emu = Emulator(env_id, roms_path, "digdug", setup_memory_addresses(), frame_ratio=frame_ratio, render=render)
         self.Dims = self.emu.screenDims
         self.started = False
         self.game_done = False
+        self.inital_score = 0
+        self.inital_round = 1
+        self.inital_lives = 2
 
 #start
     def run_steps(self, steps):
@@ -44,16 +47,19 @@ class Environment(object):
         self.run_steps(start_game(self.frame_ratio))
         self.started = True
     
-    def check_done(self, data):
+    def check_done(self, data, reward):
         if data["gameActive"] == 0:
+            reward = reward-(50/20)
             converted_score = self.convert_score(data["score"])
             print("score: " + str(converted_score))
-            print("reward: " + str(self.get_reward(converted_score, data["round"])))
             self.game_done = True
-        return data
+        return data, reward
 #new game
     def new_game(self):
         self.run_steps(start_game(self.frame_ratio))
+        self.inital_score = 0
+        self.inital_round = 1
+        self.inital_lives = 2
         self.game_done = False
         
     def convert_score(self, score):
@@ -66,9 +72,13 @@ class Environment(object):
             converted_score += str(digit)
         return int(converted_score)
     
-    def get_reward(self, score, round_val):
-        round_multi = 2000
-        reward = (score + (round_val-1)*round_multi)
+    
+    def get_reward(self, score, round_val, lives):
+        reward = ((score-self.inital_score)/10) + ((round_val-self.inital_round)*50) - ((self.inital_lives-lives)*50)
+        reward = reward / 20
+        self.inital_score = score
+        self.inital_round = round_val
+        self.inital_lives = lives
         return reward
         
 #step
@@ -78,9 +88,11 @@ class Environment(object):
             if not self.game_done:
                 actions = []
                 actions += index_to_action(action)
-                data = self.emu.step([action.value for action in actions])                
-                data = self.check_done(data)
-                return data["frame"]/255, self.game_done
+                data = self.emu.step([action.value for action in actions])
+                converted_score = self.convert_score(data["score"])
+                reward = self.get_reward(converted_score, data["round"], data["lives"])                
+                data, reward = self.check_done(data, reward)
+                return data["frame"]/255, self.game_done, reward, data["round"]
             
 #close
     def close(self):
